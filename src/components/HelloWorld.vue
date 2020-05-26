@@ -1,53 +1,45 @@
 <template>
-  <div class="hello">
-    <h1>{{ msg }}</h1>
-    <h2>Essential Links</h2>
-    <ul>
-      <li><a href="https://vuejs.org" target="_blank">Core Docs</a></li>
-      <li><a href="https://forum.vuejs.org" target="_blank">Forum</a></li>
-      <li><a href="https://chat.vuejs.org" target="_blank">Community Chat</a></li>
-      <li><a href="https://twitter.com/vuejs" target="_blank">Twitter</a></li>
-      <br>
-      <li><a href="http://vuejs-templates.github.io/webpack/" target="_blank">Docs for This Template</a></li>
-    </ul>
-    <h2>Ecosystem</h2>
-    <ul>
-      <li><a href="http://router.vuejs.org/" target="_blank">vue-router</a></li>
-      <li><a href="http://vuex.vuejs.org/" target="_blank">vuex</a></li>
-      <li><a href="http://vue-loader.vuejs.org/" target="_blank">vue-loader</a></li>
-      <li><a href="https://github.com/vuejs/awesome-vue" target="_blank">awesome-vue</a></li>
-    </ul>
+  <div>
+    <div v-for="thread in threads" :key="thread.id" class="col-large push-top">
+      <h1>{{thread.title}}</h1>
+      <div class="post-list">
+        <div v-for="postId in thread.posts" :key="postId" class="post">
+            <div class="user-info">
+                <a href="#" class="user-name">{{users[posts[postId].userId].name}}</a>
+                <a href="#">
+                    <img class="avatar-large" :src="users[posts[postId].userId].avatar" alt="">
+                </a>
+                <p class="desktop-only text-small">107 posts</p>
+            </div>
+            <div class="post-content">
+                <div>
+                  <p>
+                    {{posts[postId].text}}
+                  </p>
+                </div>
+            </div>
+            <div class="post-date text-faded">
+              {{posts[postId].publishedAt}}
+            </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
+import sourceData from '@/data.json'
+console.log(sourceData)
+
 export default {
   name: 'HelloWorld',
   data () {
     return {
-      msg: 'Welcome to Your Vue.js App'
+      threads: sourceData.threads,
+      posts: sourceData.posts,
+      users: sourceData.users
+
     }
   }
 }
 </script>
-
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-h1, h2 {
-  font-weight: normal;
-}
-
-ul {
-  list-style-type: none;
-  padding: 0;
-}
-
-li {
-  display: inline-block;
-  margin: 0 10px;
-}
-
-a {
-  color: #42b983;
-}
-</style>
