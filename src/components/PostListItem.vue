@@ -21,22 +21,22 @@
 </template>
 
 <script>
-  import sourceData from '@/data.json'
+import {countObjectProperties} from '@/utils'
 
-  export default {
-    props: {
-      post: {
-        type: Object,
-        required: true
-      }
+export default {
+  props: {
+    post: {
+      type: Object,
+      required: true
+    }
+  },
+  computed: {
+    user () {
+      return this.$store.state.users[this.post.userId]
     },
-    computed: {
-      user () {
-        return sourceData.users[this.post.userId]
-      },
-      userPostsCount () {
-        return Object.keys(this.user.posts).length
-      }
+    userPostsCount () {
+      return countObjectProperties(this.user.posts)
     }
   }
+}
 </script>

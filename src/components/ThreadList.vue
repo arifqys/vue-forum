@@ -8,7 +8,7 @@
 </template>
 
 <script>
-import ThreadListItem from '@/components/ThreadListItem.vue'
+import ThreadListItem from '@/components/ThreadListItem'
 
 export default {
   components: {
