@@ -5,6 +5,7 @@
         <a href="#">
             <img class="avatar-large" :src="user.avatar" alt="">
         </a>
+        <p class="desktop-only text-small">{{userThreadsCount}} {{userThreadsCount > 1 ? 'threads' : 'thread'}}</p>
         <p class="desktop-only text-small">{{userPostsCount}} {{userPostsCount > 1 ? 'posts' : 'post'}}</p>
     </div>
     <div class="post-content">
@@ -27,7 +28,6 @@
 
 <script>
 import PostEditor from '@/components/PostEditor'
-import {countObjectProperties} from '@/utils'
 
 export default {
   components: {
@@ -48,8 +48,11 @@ export default {
     user () {
       return this.$store.state.users[this.post.userId]
     },
+    userThreadsCount () {
+      return this.$store.getters.userThreadsCount(this.post.userId)
+    },
     userPostsCount () {
-      return countObjectProperties(this.user.posts)
+      return this.$store.getters.userPostsCount(this.post.userId)
     }
   }
 }
