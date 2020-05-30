@@ -21,7 +21,6 @@ const config = {
   appId: process.env.FIREBASE_APP_ID,
   measurementId: process.env.FIREBASE_MEASUREMENT_ID
 }
-console.log(config)
 firebase.initializeApp(config)
 
 /* eslint-disable no-new */

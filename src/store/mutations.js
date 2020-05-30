@@ -23,6 +23,12 @@ export default {
     item['.key'] = id
     Vue.set(state[resource], id, item)
   },
+  setAuthId (state, id) {
+    state.authId = id
+  },
+  setUnsubscribeAuthObserver (state, unsubscribe) {
+    state.unsubscribeAuthObserver = unsubscribe
+  },
   appendThreadToForum: makeAppendChildToParentMutation({parent: 'forums', child: 'threads'}),
   appendThreadToUser: makeAppendChildToParentMutation({parent: 'users', child: 'threads'}),
   appendPostToThread: makeAppendChildToParentMutation({parent: 'threads', child: 'posts'}),

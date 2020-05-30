@@ -1,7 +1,7 @@
 <template>
   <div v-if="asyncDataStatus_ready" class="col-large push-top">
     <h1>Create new thread in <i>{{forum.name}}</i></h1>
-    <ThreadEditor @save="save" @cancel="cancel" />
+    <ThreadEditor ref="editor" @save="save" @cancel="cancel" />
   </div>
 </template>
 
@@ -21,9 +21,17 @@ export default {
       required: true
     }
   },
+  data () {
+    return {
+      saved: false
+    }
+  },
   computed: {
     forum () {
       return this.$store.state.forums[this.forumId]
+    },
+    hasUnsavedChanges () {
+      return (this.$refs.editor.form.title || this.$refs.editor.form.text) && !this.saved
     }
   },
   methods: {
@@ -35,11 +43,24 @@ export default {
         forumId: this.forum['.key']
       })
         .then(thread => {
+          this.saved = true
           this.$router.push({name: 'ThreadShow', params: {id: thread['.key']}})
         })
     },
     cancel () {
       this.$router.push({name: 'Forum', params: {id: this.forum['.key']}})
+    }
+  },
+  beforeRouteLeave (to, from, next) {
+    if (this.hasUnsavedChanges) {
+      const confirmed = window.confirm('Are you sure you want to leave? Unsaved changes will be lost.')
+      if (confirmed) {
+        next()
+      } else {
+        next(false)
+      }
+    } else {
+      next()
     }
   },
   created () {

@@ -1,6 +1,26 @@
 import firebase from 'firebase'
+import {removeEmptyProperties} from '@/utils'
 
 export default {
+  initAuthentication ({dispatch, commit, state}) {
+    return new Promise((resolve, reject) => {
+      // unsubscribe observer if already listening
+      if (state.unsubscribeAuthObserver) {
+        state.unsubscribeAuthObserver()
+      }
+
+      const unsubscribe = firebase.auth().onAuthStateChanged(user => {
+        console.log('👣 the user has changed')
+        if (user) {
+          dispatch('fetchAuthUser')
+            .then(dbUser => resolve(dbUser))
+        } else {
+          resolve(null)
+        }
+      })
+      commit('setUnsubscribeAuthObserver', unsubscribe)
+    })
+  },
   createThread ({commit, state}, {text, title, forumId}) {
     return new Promise((resolve, reject) => {
       const threadId = firebase.database().ref('threads').push().key
@@ -50,6 +70,46 @@ export default {
         return Promise.resolve(state.posts[postId])
       })
   },
+  createUser ({state, commit}, {id, email, name, username, avatar = null}) {
+    return new Promise((resolve, reject) => {
+      const registeredAt = Math.floor(Date.now() / 1000)
+      const usernameLower = username.toLowerCase()
+      email = email.toLowerCase()
+      const user = {avatar, email, name, username, usernameLower, registeredAt}
+      firebase.database().ref('users').child(id).set(user)
+        .then(() => {
+          commit('setItem', {resource: 'users', id, item: user})
+          resolve(state.users[id])
+        })
+    })
+  },
+  registerUserWithEmailAndPassword ({dispatch}, {email, name, username, password, avatar = null}) {
+    return firebase.auth().createUserWithEmailAndPassword(email, password)
+      .then(user => dispatch('createUser', {id: user.user.uid, email, name, username, password, avatar}))
+      .then(() => dispatch('fetchAuthUser'))
+  },
+  signInWithEmailAndPassword (context, {email, password}) {
+    return firebase.auth().signInWithEmailAndPassword(email, password)
+  },
+  signInWithGoogle ({dispatch}) {
+    const provider = new firebase.auth.GoogleAuthProvider()
+    return firebase.auth().signInWithPopup(provider)
+      .then(data => {
+        const user = data.user
+        firebase.database().ref('users').child(user.uid).once('value', snapshot => {
+          if (!snapshot.exists()) {
+            return dispatch('createUser', {id: user.uid, name: user.displayName, email: user.email, username: user.email, avatar: user.photoURL})
+              .then(() => dispatch('fetchAuthUser'))
+          }
+        })
+      })
+  },
+  signOut ({commit}) {
+    return firebase.auth().signOut()
+      .then(() => {
+        commit('setAuthId', null)
+      })
+  },
   updateThread ({state, commit, dispatch}, {title, text, id}) {
     return new Promise((resolve, reject) => {
       const thread = state.threads[id]
@@ -86,7 +146,39 @@ export default {
     })
   },
   updateUser ({commit}, user) {
-    commit('setUser', {userId: user['.key'], user})
+    const updates = {
+      avatar: user.avatar,
+      username: user.username,
+      name: user.name,
+      bio: user.bio,
+      website: user.website,
+      email: user.email,
+      location: user.location
+    }
+    return new Promise((resolve, reject) => {
+      firebase.database().ref('users').child(user['.key']).update(removeEmptyProperties(updates))
+        .then(() => {
+          commit('setUser', {userId: user['.key'], user})
+          resolve(user)
+        })
+    })
+  },
+  fetchAuthUser ({dispatch, commit}) {
+    const userId = firebase.auth().currentUser.uid
+    return new Promise((resolve, reject) => {
+      // check if user exists in the database
+      firebase.database().ref('users').child(userId).once('value', snapshot => {
+        if (snapshot.exists()) {
+          return dispatch('fetchUser', {id: userId})
+            .then(user => {
+              commit('setAuthId', userId)
+              resolve(user)
+            })
+        } else {
+          resolve(null)
+        }
+      })
+    })
   },
   // single fetch
   fetchCategory: ({dispatch}, {id}) => dispatch('fetchItem', {resource: 'categories', id, emoji: '🏷'}),
