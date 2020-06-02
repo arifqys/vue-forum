@@ -22,7 +22,7 @@ const router = new Router({
       component: Home
     },
     {
-      path: '/cateory/:id',
+      path: '/category/:id',
       props: true,
       name: 'Category',
       component: Category
